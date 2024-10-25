@@ -160,7 +160,7 @@ export default function AuthRegister() {
                   </FormHelperText>
                 )}
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} >
                   <Stack spacing={1}>
                     <InputLabel htmlFor="dob-month">Date of Birth (+18)</InputLabel>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
@@ -226,7 +226,7 @@ export default function AuthRegister() {
                     </FormHelperText>
                   )}
                 </Grid>    
-              <Grid item xs={12}>
+              {/* <Grid item xs={12}>
                 <Typography variant="body2">
                   By Signing up, you agree to our &nbsp;
                   <Link variant="subtitle2" component={RouterLink} to="#">
@@ -237,7 +237,7 @@ export default function AuthRegister() {
                     Privacy Policy
                   </Link>
                 </Typography>
-              </Grid>
+              </Grid> */}
               {errors.submit && (
                 <Grid item xs={12}>
                   <FormHelperText error>{errors.submit}</FormHelperText>

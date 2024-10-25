@@ -64,7 +64,7 @@ export default function Register() {
               sx={{ textDecoration: 'none' }}
               color="primary"
             >
-              Already have an account?
+              {/* Already have an account? */}
             </Typography>
           </Stack>
         </Grid>

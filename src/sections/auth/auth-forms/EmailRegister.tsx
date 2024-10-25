@@ -113,7 +113,7 @@ export default function AuthRegister() {
                 )}
               </Grid>
               <Grid item xs={12}>
-                <Typography variant="body2">
+                {/* <Typography variant="body2">
                   By Signing up, you agree to our &nbsp;
                   <Link variant="subtitle2" component={RouterLink} to="#">
                     Terms of Service
@@ -122,7 +122,7 @@ export default function AuthRegister() {
                   <Link variant="subtitle2" component={RouterLink} to="#">
                     Privacy Policy
                   </Link>
-                </Typography>
+                </Typography> */}
               </Grid>
               {errors.submit && (
                 <Grid item xs={12}>

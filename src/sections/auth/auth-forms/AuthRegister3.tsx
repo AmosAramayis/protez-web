@@ -37,6 +37,7 @@ import UploadAvatar from 'components/third-party/dropzone/Avatar';
 import UploadSingleFile from 'components/third-party/dropzone/SingleFile';
 import UploadMultiFile from 'components/third-party/dropzone/MultiFile';
 import MultipleSelect from 'sections/components-overview/select/MultipleSelect';
+import uploadImageToBunny from 'utils/uploadImageToBunny';
 
 
 const clinicData = [
@@ -135,6 +136,7 @@ function useInputRef() {
 // ============================|| JWT - REGISTER ||============================ //
 
 export default function AuthRegister3() {
+  const [imgValue, setImgValue] = useState()
   const theme = useTheme();
   const [personName, setPersonName] = useState<string[]>([]);
   const [specializationActiv, setSpecializationActiv] = useState("")
@@ -167,8 +169,7 @@ export default function AuthRegister3() {
     };
   }
   console.log(getMeData, "getme");
-
-
+ 
   return (
     <>
       <Formik
@@ -189,12 +190,13 @@ export default function AuthRegister3() {
         }}
         validationSchema={Yup.object().shape({
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-          // contact: Yup.number()
-          //   .test('len', 'Contact should be exactly 8 digit', (val) => val?.toString().length === 8)
-          //   .required('Phone number is required'),
-          // phone: Yup.string().required('Country is required'),
+          phone: Yup.number().required('Phone number is required'),
           institution: Yup.string().max(255).required('institution is required.'),
           position: Yup.string().max(255).required('position is required.'),
+          experience: Yup.string().max(255).required('experience is required.'),
+          // specialization: Yup.array().min(1, 'specialization is required.').required('specialization is required.'),
+          clinic: Yup.array().min(1, 'clinic is required.').required('clinic is required.'),
+          goals: Yup.array().min(1, 'goals is required.').required('goals is required.'),
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           console.log(values, "dddddddddd");
@@ -205,24 +207,25 @@ export default function AuthRegister3() {
             position: values?.position,
             experience: values?.experience,
             clinics: values?.clinic,
-            specialization: values?.specialization_other ? [values?.specialization_other]?.map((item: any) => {
-              return (
-                {
-                  id: "specialization_other",
-                  label: item
-                }
-              )
-            }) :
-              //@ts-ignore
-              values?.specialization?.map((item: any) => {
-                return (
-                  {
-                    value: item?.name?.replace(" ", "_"),
-                    label: item?.name
-                  }
-                )
-              })
-            ,
+            goals: values?.goals,
+          //   specialization: values?.specialization_other ? [values?.specialization_other]?.map((item: any) => {
+          //     return (
+          //       {
+          //         id: "specialization_other",
+          //         label: item
+          //       }
+          //     )
+          //   }) :
+          //     //@ts-ignore
+          //     values?.specialization?.map((item: any) => {
+          //       return (
+          //         {
+          //           value: item?.name?.replace(" ", "_"),
+          //           label: item?.name
+          //         }
+          //       )
+          //     })
+          //   ,
           }
           registerProfile({ id: getMeData?.result?.doctor?.id, payload })
           // try {
@@ -268,9 +271,28 @@ export default function AuthRegister3() {
                   <FormControl sx={{ width: '100%' }}>
                     <Stack alignItems="center">
                       <Stack spacing={1.5} alignItems="center">
-                        <UploadAvatar setFieldValue={setFieldValue}
-                          //@ts-ignore
-                          file={values.file} error={touched.file && !!errors.file} />
+                        <UploadAvatar setFieldValue={ (e: any) => {
+                          console.log(e,"event");
+                            const uploadFiles = async () => {
+                                try {
+                                    const result = await uploadImageToBunny({
+                                        files: Object.values(e),
+                                        dir: 'profile',
+                                    });
+                                    console.log(result, "resulttttt")
+                                    setFieldValue('avatar', result?.[0]);
+                                    // @ts-ignore
+                                    setImgValue(result?.[0]);
+                                    localStorage.setItem("fileType", "image")
+                                } catch (error) {
+                                    console.error('Upload failed:', error);
+                                }
+                            };
+                            uploadFiles();
+                        }}
+                        //@ts-ignore
+                          file={values.files} error={touched.files && !!errors.files}
+                          />
                         <Stack spacing={0}>
                           <Typography align="center" variant="caption" color="secondary">
                             Allowed &apos;image/*&apos;
@@ -280,7 +302,7 @@ export default function AuthRegister3() {
                           </Typography>
                         </Stack>
                       </Stack>
-                      {touched.file && errors.file && (
+                      {touched.files && errors.file && (
                         <FormHelperText error id="standard-weight-helper-text-password-login">
                           {errors.file as string}
                         </FormHelperText>
@@ -322,6 +344,8 @@ export default function AuthRegister3() {
                 <Stack spacing={1}>
                   <InputLabel htmlFor="phone">Phone</InputLabel>
                   <PhoneInput
+                  //@ts-ignore
+                    error={Boolean(touched.phone && errors.phone)}
                     country={'am'}
                     value={values.phone}
                     onChange={(phone) => setFieldValue('phone', phone)}
@@ -335,7 +359,7 @@ export default function AuthRegister3() {
                   />
                 </Stack>
                 {touched.phone && errors.phone && (
-                  <FormHelperText error id="personal-position-helper">
+                  <FormHelperText error id="personal-phone-helper">
                     {errors.phone}
                   </FormHelperText>
                 )}
@@ -402,7 +426,7 @@ export default function AuthRegister3() {
                       {specializationData?.map((item: any, index: number) => {
                         console.log(values?.specialization,"valspesssss")
                         return (
-                          <MenuItem value={item?.id} key={index}>{item?.label}</MenuItem>
+                          <MenuItem value={item?.label} key={index}>{item?.label}</MenuItem>
                         )
                       })}
                     </Select>
@@ -456,9 +480,11 @@ export default function AuthRegister3() {
                       <MenuItem disabled value="">
                         Specialization
                       </MenuItem>
+                   
+                      
                       {experienceData?.map((item: any, index: number) => {
                         return (
-                          <MenuItem value={item?.value} key={index}>{item?.value}</MenuItem>
+                          <MenuItem value={item?.label} key={index}>{item?.label}</MenuItem>
                         )
                       })}
                     </Select>
@@ -533,7 +559,7 @@ export default function AuthRegister3() {
               </Grid>
 
 
-              <Grid item xs={12}>
+              {/* <Grid item xs={12}>
                 <MainCard
                   title="Professional License"
                   secondary={
@@ -568,8 +594,8 @@ export default function AuthRegister3() {
                     </Grid>
                   </Grid>
                 </MainCard>
-              </Grid>
-
+              </Grid> */}
+{/* 
               <Grid item xs={12}>
                 <MainCard
                   title="Relevant Certifications"
@@ -605,7 +631,7 @@ export default function AuthRegister3() {
                     </Grid>
                   </Grid>
                 </MainCard>
-              </Grid>
+              </Grid> */}
 
 
               {/* <Grid item xs={12}>

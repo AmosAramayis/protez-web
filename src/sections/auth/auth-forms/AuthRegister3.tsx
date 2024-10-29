@@ -38,6 +38,7 @@ import UploadSingleFile from 'components/third-party/dropzone/SingleFile';
 import UploadMultiFile from 'components/third-party/dropzone/MultiFile';
 import MultipleSelect from 'sections/components-overview/select/MultipleSelect';
 import uploadImageToBunny from 'utils/uploadImageToBunny';
+import { downloadImageFromBunny } from 'utils/downloadImgFromBunny';
 
 
 const clinicData = [
@@ -99,23 +100,23 @@ const experienceData = [
 ]
 const goalsData = [
   {
-    id: "նպատակ համար 1",
+    id: "նպատակ_համար 1",
     label: "նպատակ համար 1",
   },
   {
-    id: "նպատակ համար 2",
+    id: "նպատակ_համար 2",
     label: "նպատակ համար 2",
   },
   {
-    id: "նպատակ համար 3",
+    id: "նպատակ_համար 3",
     label: "նպատակ համար 3",
   },
   {
-    id: "նպատակ համար 4",
+    id: "նպատակ_համար 4",
     label: "նպատակ համար 4",
   },
   {
-    id: "նպատակ համար 5",
+    id: "նպատակ_համար 5",
     label: "նպատակ համար 5",
   },
   {
@@ -137,6 +138,7 @@ function useInputRef() {
 
 export default function AuthRegister3() {
   const [imgValue, setImgValue] = useState()
+  const [other, setOther] = useState<boolean>(false)
   const theme = useTheme();
   const [personName, setPersonName] = useState<string[]>([]);
   const [specializationActiv, setSpecializationActiv] = useState("")
@@ -169,24 +171,26 @@ export default function AuthRegister3() {
     };
   }
   console.log(getMeData, "getme");
- 
+
+
+
   return (
     <>
       <Formik
         initialValues={{
-          files: '',
+          licenses: [],
           file: '',
-          filesLic: '',
+          certificates: [],
           email: '',
           phone: '',
           institution: '',
           position: '',
-          specialization: [],
+          specialization: '',
           specialization_other: '',
           experience: '',
           clinic: [],
           goals: [],
-          submit: null
+          goals_other: '',
         }}
         validationSchema={Yup.object().shape({
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
@@ -194,11 +198,12 @@ export default function AuthRegister3() {
           institution: Yup.string().max(255).required('institution is required.'),
           position: Yup.string().max(255).required('position is required.'),
           experience: Yup.string().max(255).required('experience is required.'),
-          // specialization: Yup.array().min(1, 'specialization is required.').required('specialization is required.'),
+          specialization: Yup.string().max(255).required('specialization is required.'),
           clinic: Yup.array().min(1, 'clinic is required.').required('clinic is required.'),
           goals: Yup.array().min(1, 'goals is required.').required('goals is required.'),
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
+
           console.log(values, "dddddddddd");
           const payload = {
             business_email: values?.email,
@@ -207,26 +212,17 @@ export default function AuthRegister3() {
             position: values?.position,
             experience: values?.experience,
             clinics: values?.clinic,
-            goals: values?.goals,
-          //   specialization: values?.specialization_other ? [values?.specialization_other]?.map((item: any) => {
-          //     return (
-          //       {
-          //         id: "specialization_other",
-          //         label: item
-          //       }
-          //     )
-          //   }) :
-          //     //@ts-ignore
-          //     values?.specialization?.map((item: any) => {
-          //       return (
-          //         {
-          //           value: item?.name?.replace(" ", "_"),
-          //           label: item?.name
-          //         }
-          //       )
-          //     })
-          //   ,
+            specialization: values?.specialization === "Other" ? 
+            { id: "Other", label: values?.specialization_other } : 
+            { id: values?.specialization, label: values?.specialization?.replace("_", " ") },
+            app_goals: (values.goals || []).map((goal: any) => {
+              return {
+                id: goal,
+                label: goal === "Այլ" ? values?.goals_other : goal,
+              };
+            }),
           }
+          console.log(payload, "ppppppppp");
           registerProfile({ id: getMeData?.result?.doctor?.id, payload })
           // try {
           //   console.log(values, "valuesvaluesvaluesvalues")            
@@ -263,378 +259,445 @@ export default function AuthRegister3() {
         }}
       >
         {({ errors, handleBlur, handleChange, handleSubmit, setFieldValue, isSubmitting, touched, values }) => (
-          <form noValidate onSubmit={handleSubmit}>
-            <div className='scrollDiv'></div>
-            <Grid container spacing={2}>
-              <Grid container spacing={3}>
+            <div className='scrollDiv'>
+         <form noValidate onSubmit={handleSubmit}>
+         
+              <Grid container spacing={2}>
+                {/* <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <FormControl sx={{ width: '100%' }}>
+
+                      <Stack alignItems="center">
+                        <Stack spacing={1.5} alignItems="center">
+                          <UploadAvatar
+                            setFieldValue={setFieldValue}
+                            // setFieldValue={ (e: any) => {
+                            //   console.log(e,"event");
+                            //     const uploadFiles = async () => {
+                            //         try {
+                            //             const result = await uploadImageToBunny({
+                            //                 files: Object.values(e),
+                            //                 dir: 'profile',
+                            //             });
+                            //             console.log(result, "resulttttt")
+                            //             setFieldValue('avatar', result?.[0]);
+                            //             // @ts-ignore
+                            //             setImgValue(result?.[0]);
+                            //             localStorage.setItem("fileType", "image")
+                            //         } catch (error) {
+                            //             console.error('Upload failed:', error);
+                            //         }
+                            //     };
+                            //     uploadFiles();
+                            // }}
+                            //@ts-ignore
+                            file={values.file} error={touched.file && !!errors.file}
+                            name="file"
+                          />
+                          <Stack spacing={0}>
+                            <Typography align="center" variant="caption" color="secondary">
+                              Allowed &apos;image/*&apos;
+                            </Typography>
+                            <Typography align="center" variant="caption" color="secondary">
+                              *.png, *.jpeg, *.jpg, *.gif
+                            </Typography>
+                          </Stack>
+                        </Stack>
+                        {touched.file && errors.file && (
+                          <FormHelperText error id="standard-weight-helper-text-password-login">
+                            {errors.file as string}
+                          </FormHelperText>
+                        )}
+                      </Stack>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={2}>
+                      <Button color="error" onClick={() => setFieldValue('files', null)}>
+                        Cancel
+                      </Button>
+                    </Stack>
+                  </Grid>
+                </Grid> */}
                 <Grid item xs={12}>
-                  <FormControl sx={{ width: '100%' }}>
-                    <Stack alignItems="center">
-                      <Stack spacing={1.5} alignItems="center">
-                        <UploadAvatar setFieldValue={ (e: any) => {
-                          console.log(e,"event");
-                            const uploadFiles = async () => {
-                                try {
+                  <Stack spacing={1}>
+                    <InputLabel htmlFor="email-signup">Email Address</InputLabel>
+                    <OutlinedInput
+                      fullWidth
+                      error={Boolean(touched.email && errors.email)}
+                      id="email-login"
+                      type="email"
+                      value={values.email}
+                      name="email"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      placeholder="demo@company.com"
+                      inputProps={{}}
+                    />
+                  </Stack>
+                  {touched.email && errors.email && (
+                    <FormHelperText error id="helper-text-email-signup">
+                      {errors.email}
+                    </FormHelperText>
+                  )}
+                </Grid>
+                <Grid item xs={12}>
+                  <Stack spacing={1}>
+                    <InputLabel htmlFor="phone">Phone</InputLabel>
+                    <PhoneInput
+                      //@ts-ignore
+                      error={Boolean(touched.phone && errors.phone)}
+                      country={'am'}
+                      value={values.phone}
+                      onChange={(phone) => setFieldValue('phone', phone)}
+                      // onChange={handleChange}
+                      enableAreaCodes={true}
+                      containerClass={'custom-phone-input-container'}
+                      inputClass={'custom-phone-input'}
+                      buttonClass='custom-flag-button'
+                      masks={{ am: '(..) ..-..-..' }}
+                      placeholder='+374'
+                    />
+                  </Stack>
+                  {touched.phone && errors.phone && (
+                    <FormHelperText error id="personal-phone-helper">
+                      {errors.phone}
+                    </FormHelperText>
+                  )}
+                </Grid>
+                <Grid item xs={12}>
+                  <Stack spacing={1}>
+                    <InputLabel htmlFor="personal-institution">Where are you currently practicing or affiliated?</InputLabel>
+                    <OutlinedInput
+                      fullWidth
+                      id="personal-institution"
+                      value={values.institution}
+                      name="institution"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      placeholder="Institution"
+                      error={Boolean(touched.institution && errors.institution)}                  
+                    />
+                  </Stack>
+                  {touched.institution && errors.institution && (
+                    <FormHelperText error id="personal-institution-helper">
+                      {errors.institution}
+                    </FormHelperText>
+                  )}
+                </Grid>
+                <Grid item xs={12}>
+                  <Stack spacing={1}>
+                    <InputLabel htmlFor="personal-position">What is your professional title or position?</InputLabel>
+                    <OutlinedInput
+                      fullWidth
+                      id="personal-position"
+                      value={values.position}
+                      name="position"
+                      onBlur={handleBlur}
+                      onChange={handleChange}
+                      placeholder="Position"
+                      error={Boolean(touched.position && errors.position)}  
+                    />
+                  </Stack>
+                  {touched.position && errors.position && (
+                    <FormHelperText error id="personal-position-helper">
+                      {errors.position}
+                    </FormHelperText>
+                  )}
+                </Grid>
+                <Grid item xs={12}>
+                  <Stack spacing={1}>
+                    <InputLabel>What is your area of specialization?</InputLabel>
+                    <FormControl sx={{ width: '100%' }}>
+                      <Select
+                        value={values.specialization}
+                        displayEmpty
+                        name="specialization"
+                        renderValue={(selected) => {
+                          if (selected.length === 0) {
+                            return <Box sx={{ color: 'secondary.400' }}>Specialization</Box>;
+                          }
+                          return selected;
+                          // return selected.join(', ');
+                        }}
+                        onChange={handleChange}
+                        error={Boolean(errors.specialization && touched.specialization)}
+                      >
+                        <MenuItem disabled value="">
+                          Specialization
+                        </MenuItem>
+                        {specializationData?.map((item: any, index: number) => {
+                          console.log(values?.specialization, "valspesssss")
+                          return (
+                            <MenuItem value={item?.label} key={index}>{item?.label}</MenuItem>
+                          )
+                        })}
+                      </Select>
+                    </FormControl>
+                  </Stack>
+                  {touched.specialization && errors.specialization && <FormHelperText error={true}>{errors.specialization}</FormHelperText>}
+                </Grid>
+
+                {
+                  //@ts-ignore
+                  values?.specialization === "Այլ" &&
+                  <Grid item xs={12}>
+                    <Stack spacing={1}>
+                      <InputLabel htmlFor="personal-specialization_other">Specialization Other</InputLabel>
+                      <TextField
+                        fullWidth
+                        id="personal-specialization_other"
+                        value={values.specialization_other}
+                        name="specialization_other"
+                        onBlur={handleBlur}
+                        onChange={handleChange}
+                        placeholder="Other"
+                      />
+                    </Stack>
+                    {touched.specialization_other && errors.specialization_other && (
+                      <FormHelperText error id="personal-specialization_other-helper">
+                        {errors.specialization_other}
+                      </FormHelperText>
+                    )}
+                  </Grid>
+                }
+
+                <Grid item xs={12}>
+                  <Stack spacing={1}>
+                    <InputLabel>Experience</InputLabel>
+                    <FormControl sx={{ width: '100%' }}>
+                      <Select
+                        value={values.experience}
+                        displayEmpty
+                        name="experience"
+                        renderValue={(selected) => {
+                          if (selected.length === 0) {
+                            return <Box sx={{ color: 'secondary.400' }}>experience</Box>;
+                          }
+                          return selected;
+                          // return selected.join(', ');
+                        }}
+                        onChange={handleChange}
+                        error={Boolean(errors.experience && touched.experience)}
+                      >
+                        <MenuItem disabled value="">
+                          Specialization
+                        </MenuItem>
+
+
+                        {experienceData?.map((item: any, index: number) => {
+                          return (
+                            <MenuItem value={item?.label} key={index}>{item?.label}</MenuItem>
+                          )
+                        })}
+                      </Select>
+                    </FormControl>
+                  </Stack>
+                  {touched.experience && errors.experience && <FormHelperText error={true}>{errors.experience}</FormHelperText>}
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Stack spacing={1}>
+                    <InputLabel>Clinic</InputLabel>
+                    <FormControl sx={{ width: '100%' }}>
+                      <Select
+                        name="clinic"
+                        multiple
+                        value={values.clinic}
+                        onChange={handleChange}
+                        error={Boolean(errors.clinic && touched.clinic)}
+                        input={<OutlinedInput />}
+                        MenuProps={MenuProps}
+                        renderValue={(selected) => {
+                          if (selected.length === 0) {
+                            return <Box sx={{ color: 'secondary.400' }}>clinic</Box>;
+                          }
+                          return selected.join(', ');
+                        }}
+                      >
+                        {clinicData?.map((name: any) => {
+                          return (
+                            <MenuItem key={name} value={name.label} style={getStyles(name, personName, theme)}>
+                              {name.label}
+                            </MenuItem>
+                          )
+                        }
+                        )}
+                      </Select>
+                    </FormControl>
+                  </Stack>
+                  {touched.clinic && errors.clinic && <FormHelperText error={true}>{errors.clinic}</FormHelperText>}
+                </Grid>
+                <Grid item xs={12}>
+                  <Stack spacing={1}>
+                    <InputLabel>Goals</InputLabel>
+                    <FormControl sx={{ width: '100%' }}>
+                      <Select
+                        name="goals"
+                        multiple
+                        value={values.goals}
+                        onChange={handleChange}
+                        error={Boolean(errors.goals && touched.goals)}
+                        input={<OutlinedInput />}
+                        MenuProps={MenuProps}
+                        renderValue={(selected) => {
+                          if (selected.length === 0) {
+                            return <Box sx={{ color: 'secondary.400' }}>goals</Box>;
+                          }
+                          return selected.join(', ');
+                        }}
+                      >
+                        {goalsData.map((item: any, index: number) => (
+                          <MenuItem key={index} value={item?.id}
+                            onClick={() => { item?.label === "Այլ" && setOther(!other) }}
+                          >
+                            {item?.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Stack>
+                  {touched.goals && errors.goals && <FormHelperText error={true}>{errors.goals}</FormHelperText>}
+                </Grid>
+
+                {other &&
+                  <Grid item xs={12}>
+                    <Stack spacing={1}>
+                      <InputLabel htmlFor="personal-goals_other">Goals Other</InputLabel>
+                      <TextField
+                        fullWidth
+                        id="personal-goals_other"
+                        value={values.goals_other}
+                        name="goals_other"
+                        onBlur={handleBlur}
+                        onChange={handleChange}
+                        placeholder="Other"
+                      />
+                    </Stack>
+                    {touched.goals_other && errors.goals_other && (
+                      <FormHelperText error id="personal-goals_other-helper">
+                        {errors.goals_other}
+                      </FormHelperText>
+                    )}
+                  </Grid>
+                }
+
+{/* 
+                <Grid item xs={12}>
+                  <MainCard
+                    title="Professional License"
+                    secondary={
+                      <Stack direction="row" alignItems="center" spacing={1.25}>
+                        <IconButton color={list ? 'secondary' : 'primary'} size="small" onClick={() => setList(false)}>
+                          <TableDocument style={{ fontSize: '1.15rem' }} />
+                        </IconButton>
+                        <IconButton color={list ? 'primary' : 'secondary'} size="small" onClick={() => setList(true)}>
+                          <Category style={{ fontSize: '1.15rem' }} />
+                        </IconButton>
+                      </Stack>
+                    }
+                  >
+                    <Grid container spacing={3}>
+                      <Grid item xs={12}>
+                        <FormControl sx={{ width: '100%' }}>
+                          <Stack spacing={1.5} alignItems="center">
+                            <UploadMultiFile
+                              showList={list}
+                              //   setFieldValue={(e: any) => {
+                              //     const uploadFiles = async () => {
+                              //         try {
+                              //             const result = await uploadImageToBunny({
+                              //                 files: Object.values(e),
+                              //                 dir: 'files',
+                              //             });
+                              //             console.log(result, "resulttttt")
+                              //             setFieldValue('avatar', result?.[0]);
+                              //             // @ts-ignore
+                              //             setList(result?.[0]);
+                              //             localStorage.setItem("fileType", "file")
+                              //         } catch (error) {
+                              //             console.error('Upload failed:', error);
+                              //         }
+                              //     };
+                              //     uploadFiles();
+                              // }}
+
+                              setFieldValue={setFieldValue}
+                              //@ts-ignore
+                              files={values.licenses}
+                              error={touched.licenses && !!errors.licenses}
+                              name="licenses"
+                            />
+                          </Stack>
+                          {touched.licenses && errors.licenses && (
+                            <FormHelperText error id="standard-weight-helper-text-password-login">
+                              {errors.licenses as string}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                  </MainCard>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <MainCard
+                    title="Relevant Certifications"
+                    secondary={
+                      <Stack direction="row" alignItems="center" spacing={1.25}>
+                        <IconButton color={lists ? 'secondary' : 'primary'} size="small" onClick={() => setLists(false)}>
+                          <TableDocument style={{ fontSize: '1.15rem' }} />
+                        </IconButton>
+                        <IconButton color={lists ? 'primary' : 'secondary'} size="small" onClick={() => setLists(true)}>
+                          <Category style={{ fontSize: '1.15rem' }} />
+                        </IconButton>
+                      </Stack>
+                    }
+                  >
+                    <Grid container spacing={3}>
+                      <Grid item xs={12}>
+                        <FormControl sx={{ width: '100%' }}>
+                          <Stack spacing={1.5} alignItems="center">
+                            <UploadMultiFile
+                              showList={lists}
+                              setFieldValue={(e: any) => {
+                                const uploadFiles = async () => {
+
+                                  try {
                                     const result = await uploadImageToBunny({
-                                        files: Object.values(e),
-                                        dir: 'profile',
+                                      files: Object.values(e),
+                                      dir: 'files',
                                     });
                                     console.log(result, "resulttttt")
                                     setFieldValue('avatar', result?.[0]);
                                     // @ts-ignore
-                                    setImgValue(result?.[0]);
-                                    localStorage.setItem("fileType", "image")
-                                } catch (error) {
+                                    setLists(result?.[0]);
+                                    localStorage.setItem("fileType", "file")
+                                  } catch (error) {
                                     console.error('Upload failed:', error);
-                                }
-                            };
-                            uploadFiles();
-                        }}
-                        //@ts-ignore
-                          file={values.files} error={touched.files && !!errors.files}
-                          />
-                        <Stack spacing={0}>
-                          <Typography align="center" variant="caption" color="secondary">
-                            Allowed &apos;image/*&apos;
-                          </Typography>
-                          <Typography align="center" variant="caption" color="secondary">
-                            *.png, *.jpeg, *.jpg, *.gif
-                          </Typography>
-                        </Stack>
-                      </Stack>
-                      {touched.files && errors.file && (
-                        <FormHelperText error id="standard-weight-helper-text-password-login">
-                          {errors.file as string}
-                        </FormHelperText>
-                      )}
-                    </Stack>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
-                  <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={2}>
-                    <Button color="error" onClick={() => setFieldValue('files', null)}>
-                      Cancel
-                    </Button>
-                  </Stack>
-                </Grid>
-              </Grid>
-              <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="email-signup">Email Address</InputLabel>
-                  <OutlinedInput
-                    fullWidth
-                    error={Boolean(touched.email && errors.email)}
-                    id="email-login"
-                    type="email"
-                    value={values.email}
-                    name="email"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="demo@company.com"
-                    inputProps={{}}
-                  />
-                </Stack>
-                {touched.email && errors.email && (
-                  <FormHelperText error id="helper-text-email-signup">
-                    {errors.email}
-                  </FormHelperText>
-                )}
-              </Grid>
-              <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="phone">Phone</InputLabel>
-                  <PhoneInput
-                  //@ts-ignore
-                    error={Boolean(touched.phone && errors.phone)}
-                    country={'am'}
-                    value={values.phone}
-                    onChange={(phone) => setFieldValue('phone', phone)}
-                    // onChange={handleChange}
-                    enableAreaCodes={true}
-                    containerClass='custom-phone-input-container'
-                    inputClass='custom-phone-input'
-                    buttonClass='custom-flag-button'
-                    masks={{ am: '(..) ..-..-..' }}
-                    placeholder='+374'
-                  />
-                </Stack>
-                {touched.phone && errors.phone && (
-                  <FormHelperText error id="personal-phone-helper">
-                    {errors.phone}
-                  </FormHelperText>
-                )}
-              </Grid>
-              <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="personal-institution">Where are you currently practicing or affiliated?</InputLabel>
-                  <TextField
-                    fullWidth
-                    id="personal-institution"
-                    value={values.institution}
-                    name="institution"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="Institution"
-                  />
-                </Stack>
-                {touched.institution && errors.institution && (
-                  <FormHelperText error id="personal-institution-helper">
-                    {errors.institution}
-                  </FormHelperText>
-                )}
-              </Grid>
-              <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel htmlFor="personal-position">What is your professional title or position?</InputLabel>
-                  <TextField
-                    fullWidth
-                    id="personal-position"
-                    value={values.position}
-                    name="position"
-                    onBlur={handleBlur}
-                    onChange={handleChange}
-                    placeholder="Position"
-                  />
-                </Stack>
-                {touched.position && errors.position && (
-                  <FormHelperText error id="personal-position-helper">
-                    {errors.position}
-                  </FormHelperText>
-                )}
-              </Grid>
-              <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel>What is your area of specialization?</InputLabel>
-                  <FormControl sx={{ width: '100%' }}>
-                    <Select
-                      value={values.specialization}
-                      displayEmpty
-                      name="specialization"
-                      renderValue={(selected) => {
-                        if (selected.length === 0) {
-                          return <Box sx={{ color: 'secondary.400' }}>Specialization</Box>;
-                        }
-                        return selected;
-                        // return selected.join(', ');
-                      }}
-                      onChange={handleChange}
-                      error={Boolean(errors.specialization && touched.specialization)}
-                    >
-                      <MenuItem disabled value="">
-                        Specialization
-                      </MenuItem>
-                      {specializationData?.map((item: any, index: number) => {
-                        console.log(values?.specialization,"valspesssss")
-                        return (
-                          <MenuItem value={item?.label} key={index}>{item?.label}</MenuItem>
-                        )
-                      })}
-                    </Select>
-                  </FormControl>
-                </Stack>
-                {touched.specialization && errors.specialization && <FormHelperText error={true}>{errors.specialization}</FormHelperText>}
-              </Grid>
-
-              {
-                //@ts-ignore
-              values?.specialization === "Ohter" &&
-                    <Grid item xs={12}>
-                      <Stack spacing={1}>
-                        <InputLabel htmlFor="personal-specialization_other">Other</InputLabel>
-                        <TextField
-                          fullWidth
-                          id="personal-specialization_other"
-                          value={values.specialization_other}
-                          name="specialization_other"
-                          onBlur={handleBlur}
-                          onChange={handleChange}
-                          placeholder="Other"
-                        />
-                      </Stack>
-                      {touched.specialization_other && errors.specialization_other && (
-                        <FormHelperText error id="personal-specialization_other-helper">
-                          {errors.specialization_other}
-                        </FormHelperText>
-                      )}
+                                  }
+                                };
+                                uploadFiles();
+                              }}
+                              //@ts-ignore
+                              files={values.certificates}
+                              error={touched.certificates && !!errors.certificates}
+                              name="certificates"
+                            />
+                          </Stack>
+                          {touched.certificates && errors.certificates && (
+                            <FormHelperText error id="standard-weight-helper-text-password-login">
+                              {errors.certificates as string}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
                     </Grid>
-                      }
-
-              <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel>Experience</InputLabel>
-                  <FormControl sx={{ width: '100%' }}>
-                    <Select
-                      value={values.experience}
-                      displayEmpty
-                      name="experience"
-                      renderValue={(selected) => {
-                        if (selected.length === 0) {
-                          return <Box sx={{ color: 'secondary.400' }}>experience</Box>;
-                        }
-                        return selected;
-                        // return selected.join(', ');
-                      }}
-                      onChange={handleChange}
-                      error={Boolean(errors.experience && touched.experience)}
-                    >
-                      <MenuItem disabled value="">
-                        Specialization
-                      </MenuItem>
-                   
-                      
-                      {experienceData?.map((item: any, index: number) => {
-                        return (
-                          <MenuItem value={item?.label} key={index}>{item?.label}</MenuItem>
-                        )
-                      })}
-                    </Select>
-                  </FormControl>
-                </Stack>
-                {touched.experience && errors.experience && <FormHelperText error={true}>{errors.experience}</FormHelperText>}
-              </Grid>
-
-              <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel>Clinic</InputLabel>
-                  <FormControl sx={{ width: '100%' }}>
-                    <Select
-                      name="clinic"
-                      multiple
-                      value={values.clinic}
-                      onChange={handleChange}
-                      error={Boolean(errors.clinic && touched.clinic)}
-                      input={<OutlinedInput />}
-                      MenuProps={MenuProps}
-                      renderValue={(selected) => {
-                        if (selected.length === 0) {
-                          return <Box sx={{ color: 'secondary.400' }}>clinic</Box>;
-                        }
-                        return selected.join(', ');
-                      }}
-                    >
-                      {clinicData?.map((name: any) => {
-                        return (
-                          <MenuItem key={name} value={name.label} style={getStyles(name, personName, theme)}>
-                            {name.label}
-                          </MenuItem>
-                        )
-                      }
-                      )}
-                    </Select>
-                  </FormControl>
-                </Stack>
-                {touched.clinic && errors.clinic && <FormHelperText error={true}>{errors.clinic}</FormHelperText>}
-              </Grid>
-              <Grid item xs={12}>
-                <Stack spacing={1}>
-                  <InputLabel>Goals</InputLabel>
-                  <FormControl sx={{ width: '100%' }}>
-                    <Select
-                      name="goals"
-                      multiple
-                      value={values.goals}
-                      onChange={handleChange}
-                      error={Boolean(errors.goals && touched.goals)}
-                      input={<OutlinedInput />}
-                      MenuProps={MenuProps}
-                      renderValue={(selected) => {
-                        if (selected.length === 0) {
-                          return <Box sx={{ color: 'secondary.400' }}>goals</Box>;
-                        }
-                        return selected.join(', ');
-                      }}
-                    >
-                      {goalsData?.map((name: any) => {
-                        return (
-                          <MenuItem key={name} value={name.label} style={getStyles(name, personName, theme)}>
-                            {name.label}
-                          </MenuItem>
-                        )
-                      }
-                      )}
-                    </Select>
-                  </FormControl>
-                </Stack>
-                {touched.goals && errors.goals && <FormHelperText error={true}>{errors.goals}</FormHelperText>}
-              </Grid>
+                  </MainCard>
+                </Grid> */}
 
 
-              {/* <Grid item xs={12}>
-                <MainCard
-                  title="Professional License"
-                  secondary={
-                    <Stack direction="row" alignItems="center" spacing={1.25}>
-                      <IconButton color={list ? 'secondary' : 'primary'} size="small" onClick={() => setList(false)}>
-                        <TableDocument style={{ fontSize: '1.15rem' }} />
-                      </IconButton>
-                      <IconButton color={list ? 'primary' : 'secondary'} size="small" onClick={() => setList(true)}>
-                        <Category style={{ fontSize: '1.15rem' }} />
-                      </IconButton>
-                    </Stack>
-                  }
-                >
-                  <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                      <FormControl sx={{ width: '100%' }}>
-                        <Stack spacing={1.5} alignItems="center">
-                          <UploadMultiFile
-                            showList={list}
-                            setFieldValue={setFieldValue}
-                            //@ts-ignore
-                            files={values.files}
-                            error={touched.files && !!errors.files}
-                          />
-                        </Stack>
-                        {touched.files && errors.files && (
-                          <FormHelperText error id="standard-weight-helper-text-password-login">
-                            {errors.files as string}
-                          </FormHelperText>
-                        )}
-                      </FormControl>
-                    </Grid>
-                  </Grid>
-                </MainCard>
-              </Grid> */}
-{/* 
-              <Grid item xs={12}>
-                <MainCard
-                  title="Relevant Certifications"
-                  secondary={
-                    <Stack direction="row" alignItems="center" spacing={1.25}>
-                      <IconButton color={lists ? 'secondary' : 'primary'} size="small" onClick={() => setLists(false)}>
-                        <TableDocument style={{ fontSize: '1.15rem' }} />
-                      </IconButton>
-                      <IconButton color={lists ? 'primary' : 'secondary'} size="small" onClick={() => setLists(true)}>
-                        <Category style={{ fontSize: '1.15rem' }} />
-                      </IconButton>
-                    </Stack>
-                  }
-                >
-                  <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                      <FormControl sx={{ width: '100%' }}>
-                        <Stack spacing={1.5} alignItems="center">
-                          <UploadMultiFile
-                            showList={lists}
-                            setFieldValue={setFieldValue}
-                            //@ts-ignore
-                            files={values.filesLic}
-                            error={touched.filesLic && !!errors.filesLic}
-                          />
-                        </Stack>
-                        {touched.filesLic && errors.filesLic && (
-                          <FormHelperText error id="standard-weight-helper-text-password-login">
-                            {errors.filesLic as string}
-                          </FormHelperText>
-                        )}
-                      </FormControl>
-                    </Grid>
-                  </Grid>
-                </MainCard>
-              </Grid> */}
-
-
-              {/* <Grid item xs={12}>
+                {/* <Grid item xs={12}>
                 <Typography variant="body2">
                   By Signing up, you agree to our &nbsp;
                   <Link variant="subtitle2" component={RouterLink} to="#">
@@ -651,15 +714,17 @@ export default function AuthRegister3() {
                   <FormHelperText error>{errors.submit}</FormHelperText>
                 </Grid>
               )} */}
-              <Grid item xs={12}>
-                <AnimateButton>
-                  <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="primary">
-                    Create Account
-                  </Button>
-                </AnimateButton>
+                <Grid item xs={12}>
+                  <AnimateButton>
+                    <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="primary">
+                      Create Account
+                    </Button>
+                  </AnimateButton>
+                </Grid>
               </Grid>
-            </Grid>
+            
           </form>
+          </div>
         )}
       </Formik>
     </>

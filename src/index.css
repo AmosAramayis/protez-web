@@ -1,7 +1,15 @@
 .custom-phone-input-container{
     width: 100% !important;
     height: 48px;
-    border: 1px solid rgb(198, 198, 198) !important;
+    border: 1px solid rgb(198, 198, 198) ;
+    display: flex;
+    align-items: center;
+    border-radius: 7px;
+}
+.custom-phone-input-containerError{
+    width: 100% !important;
+    height: 48px;
+    border: 1px solid rgb(255, 0, 0) ;
     display: flex;
     align-items: center;
     border-radius: 7px;
@@ -11,5 +19,23 @@
     border: none !important;
 }
 .custom-flag-button{
-    border-radius: 7px 0 0 8px!important;
+    border-radius: 7px 0 0 7px!important;
+}
+.scrollDiv{
+    padding: 30px 10px 20px 0;
+    overflow: scroll !important;
+    height: 700px !important;
+    margin-right: 30px;
+}
+.resend-btn{
+    font-size: 18px;
+    line-height: 24px;
+    padding-left: 5px;
+    color:#006ea2;
+&:hover{
+        cursor: pointer;
+    }
+}
+.resend-code{
+    width: 110px;
 }

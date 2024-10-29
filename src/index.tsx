@@ -1,5 +1,6 @@
 import './index.css';
 import { createRoot } from 'react-dom/client';
+import 'react-toastify/dist/ReactToastify.css';
 
 // map
 import 'mapbox-gl/dist/mapbox-gl.css';

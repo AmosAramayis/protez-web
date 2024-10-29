@@ -14,6 +14,7 @@ import Notistack from 'components/third-party/Notistack';
 // auth-provider
 import { JWTProvider as AuthProvider } from 'contexts/JWTContext';
 import { Provider } from 'react-redux';
+import { ToastContainer } from 'react-toastify';
 // import { FirebaseProvider as AuthProvider } from 'contexts/FirebaseContext';
 // import { AWSCognitoProvider as AuthProvider } from 'contexts/AWSCognitoContext';
 // import { Auth0Provider as AuthProvider } from 'contexts/Auth0Context';
@@ -22,6 +23,7 @@ import { Provider } from 'react-redux';
 
 export default function App() {
   return (
+
     <ThemeCustomization>
       <RTLLayout>
         <Locales>
@@ -38,7 +40,9 @@ export default function App() {
           </ScrollTop>
         </Locales>
       </RTLLayout>
+      <ToastContainer />
     </ThemeCustomization>
+ 
   
   );
 }

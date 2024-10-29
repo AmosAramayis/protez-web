@@ -30,7 +30,7 @@ import { SnackbarProps } from 'types/snackbar';
 import { Warning2 } from 'iconsax-react';
 import { useLoginCodeMutation, useLoginEmailMutation } from 'services/request';
 import { useAppSelector } from 'services/store';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 // ============================|| AWS COGNITO - CODE VERIFICATION ||============================ //
 
@@ -38,6 +38,8 @@ export default function AuthCodeVerification() {
   //@ts-ignore
   const { codeVerification, resendConfirmationCode } = useAuth();
   const scriptedRef = useScriptRef();
+  const [isCountingDown, setIsCountingDown] = useState(false);
+  const [seconds, setSeconds] = useState(60);
   const theme = useTheme();
   const navigate = useNavigate();
   const email = useAppSelector((state) => state.auth.email);  
@@ -57,6 +59,25 @@ if(isSuccess && loginCodeData?.result?.accessToken){
   
 }
   }, [isSuccess, loginCodeData?.result?.accessToken])
+
+  const startCountdown = () => {
+    setIsCountingDown(true);
+    setSeconds(60);
+  };
+
+  useEffect(() => {
+    let countdownInterval: any;
+
+    if (isCountingDown && seconds > 0) {
+      countdownInterval = setInterval(() => {
+        setSeconds((prevSeconds) => prevSeconds - 1);
+      }, 1000);
+    } else if (seconds === 0) {
+      setIsCountingDown(false);
+    }
+
+    return () => clearInterval(countdownInterval);
+  }, [isCountingDown, seconds]);
   
   return (
     <Formik
@@ -162,14 +183,26 @@ if(isSuccess && loginCodeData?.result?.accessToken){
               <Stack direction="row" justifyContent="space-between" alignItems="baseline">
                 <Typography>Did not receive the email? Check spam folder or</Typography>
                 {/* need to impletement resend code */}
-                <Typography
-                  onClick={resendCode}
-                  variant="body1"
-                  sx={{ textDecoration: 'none', cursor: 'pointer' }}
-                  color="primary"
-                >
-                  Resend code
-                </Typography>
+                <div className="resend-code">
+                    {isCountingDown ? (
+                      <span className="resend-btn">{`0${Math.floor(
+                        seconds / 60
+                      )} : ${String(seconds % 60).padStart(2, "0")}`}</span>
+                    ) : (
+                      <Typography
+                      onClick={() => {
+                        resendCode();
+                        !isCountingDown && startCountdown();
+                      }}
+                      variant="body1"
+                      sx={{ textDecoration: 'none', cursor: 'pointer' }}
+                      color="primary"
+                    >
+                      Resend code
+                    </Typography>
+                    )}
+                  </div>
+            
               </Stack>
             </Grid>
           </Grid>
@@ -178,3 +211,5 @@ if(isSuccess && loginCodeData?.result?.accessToken){
     </Formik>
   );
             }
+
+           

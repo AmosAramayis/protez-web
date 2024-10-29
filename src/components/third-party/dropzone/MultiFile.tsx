@@ -28,18 +28,18 @@ const DropzoneWrapper = styled('div')(({ theme }) => ({
 
 // ==============================|| UPLOAD - MULTIPLE FILE ||============================== //
 
-export default function MultiFileUpload({ error, showList = false, files, type, setFieldValue, sx, onUpload }: UploadMultiFileProps) {
+export default function MultiFileUpload({ name, error, showList = false, files, type, setFieldValue, sx, onUpload }: UploadMultiFileProps) {
   const { getRootProps, getInputProps, isDragActive, isDragReject, fileRejections } = useDropzone({
     multiple: true,
     onDrop: (acceptedFiles: CustomFile[]) => {
       if (files) {
-        setFieldValue('files', [
+        setFieldValue(name, [
           ...files,
           ...acceptedFiles.map((file: CustomFile) => Object.assign(file, { preview: URL.createObjectURL(file) }))
         ]);
       } else {
         setFieldValue(
-          'files',
+          name,
           acceptedFiles.map((file: CustomFile) => Object.assign(file, { preview: URL.createObjectURL(file) }))
         );
       }
@@ -47,13 +47,16 @@ export default function MultiFileUpload({ error, showList = false, files, type, 
   });
 
   const onRemoveAll = () => {
-    setFieldValue('files', null);
+    setFieldValue(name, null);
   };
 
   const onRemove = (file: File | string) => {
     const filteredItems = files && files.filter((_file) => _file !== file);
-    setFieldValue('files', filteredItems);
+    setFieldValue(name, filteredItems);
   };
+
+  console.log(files, "sik e");
+  
 
   return (
     <>

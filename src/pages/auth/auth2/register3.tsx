@@ -31,7 +31,7 @@ export default function Register() {
         <Grid item xs={12} sx={{ textAlign: 'center' }}>
           <Logo />
         </Grid>
-        <Grid item xs={12}>
+        {/* <Grid item xs={12}>
           <Grid container spacing={1}>
             <Grid item xs={12}>
               <AuthSocButton>
@@ -49,11 +49,11 @@ export default function Register() {
               </AuthSocButton>
             </Grid>
           </Grid>
-        </Grid>
+        </Grid> */}
         <Grid item xs={12}>
-          <AuthDivider>
+          {/* <AuthDivider>
             <Typography variant="body1">OR</Typography>
-          </AuthDivider>
+          </AuthDivider> */}
         </Grid>
         <Grid item xs={12}>
           <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
